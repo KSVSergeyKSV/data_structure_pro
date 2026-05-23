@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenData Web Converter - Конвертер открытых данных (МР 4.0)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 OpenData Web Converter</h1>
+            <p>Автономный веб-конвертер открытых данных | Стандарт МР 4.0 | Версия 2.0</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <span id="progress1">1. Реестр</span>
+            <span id="progress2">2. Данные</span>
+            <span id="progress3">3. Структура</span>
+            <span id="progress4">4. Паспорт</span>
+            <span id="progress5">5. Экспорт</span>
+        </div>
+
+        <!-- Profile Manager -->
+        <div id="profileManager"></div>
+
+        <!-- Step 1: Registry Module -->
+        <div id="step1" class="step active">
+            <div id="registryModule"></div>
+        </div>
+
+        <!-- Step 2: Data Upload -->
+        <div id="step2" class="step">
+            <div id="dataUploadModule"></div>
+        </div>
+
+        <!-- Step 3: Structure Validation -->
+        <div id="step3" class="step">
+            <div id="structureModule"></div>
+        </div>
+
+        <!-- Step 4: Passport Generation -->
+        <div id="step4" class="step">
+            <div id="passportModule"></div>
+        </div>
+
+        <!-- Step 5: Export -->
+        <div id="step5" class="step">
+            <div id="exportModule"></div>
+        </div>
+
+        <footer style="text-align:center;margin-top:40px;padding:20px;color:#666;font-size:12px;">
+            <p>OpenData Web Converter v2.0 | Соответствует Методическим рекомендациям Минцифры России v4.0</p>
+            <p>Работает локально в браузере. Данные не покидают ваш компьютер.</p>
+        </footer>
+    </div>
+
+    <!-- Libraries (local) -->
+    <script src="js/lib/xlsx.full.min.js"></script>
+    <script src="js/lib/papaparse.min.js"></script>
+    <script src="js/lib/jszip.min.js"></script>
+    <script src="js/lib/FileSaver.min.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
+</body>
+</html>
