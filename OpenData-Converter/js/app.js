@@ -266,26 +266,74 @@ function renderRegistry() {
     html += '<h2>📋 Шаг 1: Реестр наборов данных</h2>';
     
     if (!registry || !registry.data || registry.data.length === 0) {
-        html += '<p>Загрузите внутренний реестр наборов открытых данных (Excel/CSV).</p>';
-        html += '<input type="file" id="registryFile" accept=".xlsx,.xls,.csv" onchange="loadRegistry(event)">';
-        html += '<p class="info">Файл должен содержать колонки: ID, Название, Владелец, Контакты, Описание, Ключевые слова, Частота, Дата создания</p>';
+        // Empty state - no registry loaded
+        html += '<div class="upload-area" style="text-align:center;padding:40px;border:2px dashed #ccc;border-radius:8px;margin:20px 0;">';
+        html += '<div style="font-size:48px;margin-bottom:10px;">📂</div>';
+        html += '<h3>Реестр не загружен</h3>';
+        html += '<p>Загрузите файл реестра (.xlsx, .xls, .csv)</p>';
+        html += '<input type="file" id="registryFile" accept=".xlsx,.xls,.csv" onchange="loadRegistry(event)" style="display:none;">';
+        html += '<button onclick="document.getElementById(\'registryFile\').click()" class="btn btn-primary">Выбрать файл реестра</button>';
+        html += '<p class="hint" style="margin-top:15px;font-size:13px;color:#666;">Поддерживаются файлы Excel и CSV. Данные обрабатываются локально.</p>';
+        html += '</div>';
     } else {
-        html += '<p>Реестр загружен. Выберите набор данных:</p>';
-        html += '<input type="text" id="registrySearch" placeholder="Поиск..." oninput="filterRegistry()" style="width:100%;margin-bottom:10px;">';
-        html += '<div style="max-height:300px;overflow:auto;"><table class="data-table" id="registryTable">';
-        html += '<thead><tr><th>ID</th><th>Название</th><th>Владелец</th><th>Действие</th></tr></thead><tbody>';
+        // Loaded state - show registry with management controls
+        const selectedCount = AppState.currentProfile.selectedDataset ? 1 : 0;
+        
+        html += '<div class="registry-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:15px;background:#f9f9f9;border-radius:6px;">';
+        html += '<div>';
+        html += '<strong>Файл:</strong> ' + escapeHtml(registry.fileName);
+        html += '<br><small>Загружен: ' + new Date(registry.loadedAt).toLocaleString('ru-RU') + '</small>';
+        html += '</div>';
+        html += '<div class="registry-actions" style="display:flex;gap:10px;">';
+        html += '<button onclick="replaceRegistry()" class="btn btn-secondary">🔄 Заменить файл</button>';
+        html += '<button onclick="clearRegistry()" class="btn btn-danger">🗑️ Удалить реестр</button>';
+        html += '</div>';
+        html += '</div>';
+        
+        html += '<div class="registry-stats" style="margin-bottom:15px;padding:10px;background:#e8f5e9;border-radius:6px;">';
+        html += '📊 Найдено наборов: <strong>' + registry.data.length + '</strong>';
+        if (selectedCount > 0) {
+            html += ' | ✅ Выбрано: <strong>1</strong>';
+        }
+        html += '</div>';
+        
+        html += '<input type="text" id="registrySearch" placeholder="🔍 Поиск по реестру..." oninput="filterRegistry()" style="width:100%;padding:10px;margin-bottom:15px;border:1px solid #ddd;border-radius:4px;font-size:14px;">';
+        
+        html += '<div style="max-height:300px;overflow:auto;border:1px solid #ddd;border-radius:6px;">';
+        html += '<table class="data-table" id="registryTable" style="width:100%;border-collapse:collapse;">';
+        html += '<thead style="background:#f5f5f5;position:sticky;top:0;"><tr>';
+        html += '<th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">ID</th>';
+        html += '<th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">Название</th>';
+        html += '<th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">Владелец</th>';
+        html += '<th style="padding:10px;text-align:center;border-bottom:2px solid #ddd;">Действие</th>';
+        html += '</tr></thead><tbody>';
         
         registry.data.forEach((row, idx) => {
-            html += `<tr data-idx="${idx}">
-                <td>${escapeHtml(row.id || row.ID || '-')}</td>
-                <td>${escapeHtml(row.title || row.Name || row.Название || '-')}</td>
-                <td>${escapeHtml(row.owner || row.Owner || row.Владелец || '-')}</td>
-                <td><button onclick="selectRegistryItem(${idx})">Выбрать</button></td>
-            </tr>`;
+            const isSelected = AppState.currentProfile.selectedDataset && 
+                              AppState.currentProfile.selectedDataset === row;
+            const rowStyle = isSelected ? 'background:#e3f2fd;' : '';
+            const statusIcon = isSelected ? '✅' : '';
+            
+            html += `<tr data-idx="${idx}" style="${rowStyle}">`;
+            html += `<td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(row.id || row.ID || row['Идентификатор'] || '-')}</td>`;
+            html += `<td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(row.title || row.Name || row.Название || row['Наименование'] || '-')}</td>`;
+            html += `<td style="padding:8px;border-bottom:1px solid #eee;">${escapeHtml(row.owner || row.Owner || row.Владелец || row['Ответственный'] || '-')}</td>`;
+            html += `<td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">`;
+            if (isSelected) {
+                html += '<span style="color:green;font-weight:bold;">Выбрано</span>';
+            } else {
+                html += `<button onclick="selectRegistryItem(${idx})" class="btn btn-small">Выбрать</button>`;
+            }
+            html += '</td></tr>';
         });
         
         html += '</tbody></table></div>';
-        html += '<button onclick="clearRegistry()" class="danger">Очистить реестр</button>';
+        
+        if (!AppState.currentProfile.selectedDataset) {
+            html += '<p class="info" style="margin-top:15px;padding:10px;background:#fff3cd;border-left:4px solid #ffc107;border-radius:4px;">⚠️ Выберите набор данных из реестра для продолжения работы</p>';
+        } else {
+            html += '<p class="success" style="margin-top:15px;padding:10px;background:#d4edda;border-left:4px solid #28a745;border-radius:4px;">✅ Набор данных выбран. Перейдите к Шагу 2 для загрузки файла данных.</p>';
+        }
     }
     
     html += '</div>';
@@ -345,10 +393,10 @@ function selectRegistryItem(idx) {
     const item = AppState.currentProfile.registry.data[idx];
     AppState.currentProfile.selectedDataset = item;
     AppState.conversionSettings.customHeaders = {};
+    Storage.saveProfile(AppState.currentProfile);
     renderRegistry();
     renderPassport();
     logEvent('DATASET_SELECTED', { itemId: idx });
-    alert('Набор данных выбран. Перейдите к Шагу 2 для загрузки файла данных.');
 }
 
 function clearRegistry() {
@@ -359,6 +407,55 @@ function clearRegistry() {
     renderRegistry();
     renderPassport();
     logEvent('REGISTRY_CLEARED');
+}
+
+function replaceRegistry() {
+    // Create a hidden file input and trigger it
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = evt => {
+            try {
+                const data = evt.target.result;
+                let workbook;
+                
+                if (file.name.endsWith('.csv')) {
+                    const parsed = Papa.parse(data, { header: true, skipEmptyLines: true });
+                    workbook = { Sheets: { Sheet1: parsed.data } };
+                } else {
+                    workbook = XLSX.read(data, { type: 'array' });
+                }
+                
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                
+                AppState.currentProfile.registry = {
+                    fileName: file.name,
+                    loadedAt: new Date().toISOString(),
+                    data: jsonData
+                };
+                AppState.currentProfile.selectedDataset = null;
+                AppState.conversionSettings.customHeaders = {};
+                Storage.saveProfile(AppState.currentProfile);
+                renderRegistry();
+                logEvent('REGISTRY_REPLACED', { fileName: file.name, recordCount: jsonData.length });
+            } catch (err) {
+                alert('Ошибка загрузки реестра: ' + err.message);
+            }
+        };
+        
+        if (file.name.endsWith('.csv')) {
+            reader.readAsText(file);
+        } else {
+            reader.readAsArrayBuffer(file);
+        }
+    };
+    input.click();
 }
 
 // ============================================
