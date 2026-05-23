@@ -1,15 +1,26 @@
 ```
-# Dependencies
-node_modules/
-
-# Build artifacts
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
 dist/
 build/
 target/
 
+# Dependencies
+.venv/
+venv/
+node_modules/
+.mypy_cache/
+.pytest_cache/
+.gradle/
+
 # Logs and temp files
 *.log
 *.tmp
+*.swp
+*.swo
 
 # Environment
 .env
@@ -20,40 +31,16 @@ target/
 .vscode/
 .idea/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-.venv/
-.env
+# System files
+.DS_Store
+Thumbs.db
 
-# Java
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-target/
-.gradle/
-build/
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# C/C++
-*.o
-*.obj
-*.so
-*.a
-*.dll
-*.exe
-*.out
-
-# Web
-*.min.js
-*.min.css
-
-# Archives
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -72,8 +59,4 @@ build/
 *.Z
 *.lz
 *.lzo
-
-# OS generated files
-.DS_Store
-Thumbs.db
 ```
