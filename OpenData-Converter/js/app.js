@@ -279,6 +279,9 @@ function renderRegistry() {
         // Loaded state - show registry with management controls
         const selectedCount = AppState.currentProfile.selectedDataset ? 1 : 0;
         
+        // Скрытый input для замены файла
+        html += '<input type="file" id="registryFileReplace" accept=".xlsx,.xls,.csv" onchange="loadRegistry(event)" style="display:none;">';
+        
         html += '<div class="registry-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:15px;background:#f9f9f9;border-radius:6px;">';
         html += '<div>';
         html += '<strong>Файл:</strong> ' + escapeHtml(registry.fileName);
@@ -378,6 +381,44 @@ function loadRegistry(event) {
     } else {
         reader.readAsArrayBuffer(file);
     }
+}
+
+// Замена файла реестра
+function replaceRegistry() {
+    if (!confirm('Вы уверены, что хотите заменить текущий файл реестра? Текущие данные будут потеряны.')) {
+        return;
+    }
+    const input = document.getElementById('registryFileReplace');
+    if (input) {
+        input.click();
+    } else {
+        // Создаем временный input если его нет
+        const tempInput = document.createElement('input');
+        tempInput.type = 'file';
+        tempInput.accept = '.xlsx,.xls,.csv';
+        tempInput.style.display = 'none';
+        tempInput.onchange = function(e) {
+            loadRegistry(e);
+            document.body.removeChild(tempInput);
+        };
+        document.body.appendChild(tempInput);
+        tempInput.click();
+    }
+}
+
+// Удаление реестра
+function clearRegistry() {
+    if (!confirm('Вы уверены, что хотите удалить реестр? Все выбранные наборы данных будут сброшены.')) {
+        return;
+    }
+    
+    AppState.currentProfile.registry = null;
+    AppState.currentProfile.selectedDataset = null;
+    AppState.conversionSettings.customHeaders = {};
+    Storage.saveProfile(AppState.currentProfile);
+    logEvent('REGISTRY_CLEARED', {});
+    renderRegistry();
+    renderPassport();
 }
 
 function filterRegistry() {
